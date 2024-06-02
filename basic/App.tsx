@@ -54,7 +54,7 @@ const App = () => {
     setSearch(event?.target.value);
   };
   const searchedStories = stories.filter((story) =>
-    story.title.toLocaleLowerCase().includes(search.toLocaleLowerCase())
+    story.title.toLowerCase().includes(search.toLowerCase())
   );
   const handleRemoveStory = (item: Story) => {
     const newStories = stories.filter(
