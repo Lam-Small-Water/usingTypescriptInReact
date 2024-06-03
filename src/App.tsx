@@ -129,8 +129,9 @@ const App = () => {
     setSearch(event?.target.value);
   };
 
-  const handleSearchSubmit = () => {
-    setUrl(`${API_ENDPOINT}${search}`)
+  const handleSearchSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    setUrl(`${API_ENDPOINT}${search}`);
+    event.preventDefault();
   }
 
   return (
@@ -138,22 +139,11 @@ const App = () => {
       <h1>My Hacker Stories</h1>
       <h2>Type: {search}</h2>
 
-      <InputWithLabel
-        id="search"
-        value={search}
-        isFocused
-        onInputChange={handleSearch}
-      >
-        <strong>Search:</strong>
-      </InputWithLabel>
-
-      <button
-        type="button"
-        disabled={!search}
-        onClick={handleSearchSubmit}
-      >
-        Submit
-      </button>
+      <SearchForm 
+        search={search}
+        onSearchInput={handleSearch}
+        onSearchSubmit={handleSearchSubmit}
+      />
 
       <hr />
       {stories.isError && <p>Something went wrong ...</p>}
@@ -165,6 +155,33 @@ const App = () => {
     </div>
   );
 };
+
+type SearchFormProps = {
+  search: string;
+  onSearchInput: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onSearchSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
+};
+
+const SearchForm = ({
+  search,
+  onSearchInput,
+  onSearchSubmit,
+}: SearchFormProps) => (
+  <form onSubmit={onSearchSubmit}>
+    <InputWithLabel
+      id="search"
+      value={search}
+      isFocused
+      onInputChange={onSearchInput}
+    >
+      <strong>Search: </strong>
+    </InputWithLabel>
+
+    <button type="submit" disabled={!search}>
+      Submit
+    </button>
+  </form>
+)
 
 type InputWithLabelProps = {
   id: string;
