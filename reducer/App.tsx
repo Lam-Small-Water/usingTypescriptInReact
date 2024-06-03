@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useReducer, useCallback } from "react";
+import { useState, useEffect, useRef, useReducer } from "react";
 import "./App.css";
 
 type Story = {
@@ -9,6 +9,32 @@ type Story = {
   num_comments: number;
   points: number;
 };
+
+type Stories = Story[];
+
+const initialStories = [
+  {
+    title: "React",
+    url: "https://reactjs.org/",
+    author: "Jordan Walke",
+    num_comments: 3,
+    points: 4,
+    objectID: 0,
+  },
+  {
+    title: "Redux",
+    url: "https://redux.js.org/",
+    author: "Dan Abramov, Andrew Clark",
+    num_comments: 2,
+    points: 5,
+    objectID: 1,
+  },
+];
+
+const getAsyncStories = (): Promise<{ data: { stories: Story[] } }> =>
+  new Promise((resolve) =>
+    setTimeout(() => resolve({ data: { stories: initialStories } }), 2000)
+  );
 
 type StoriesState = {
   data: Story[];
@@ -86,51 +112,38 @@ const useStorageState = (key: string, initialState: string) => {
   return [value, setValue] as const;
 };
 
-const API_ENDPOINT = 'https://hn.algolia.com/api/v1/search?query=';
-
 const App = () => {
   const [search, setSearch] = useStorageState("search", "React");
-
-  const [url, setUrl] = useState(
-    `${API_ENDPOINT}${search}`
-  );
-
   const [stories, dispatchStories] = useReducer(
     storiesReducer, {data: [], isLoading: false, isError: false}
-  );
-  const handleFetchStories = useCallback(() => {
-    dispatchStories({type: 'STORIES_FETCH_INIT'});
+    );
 
-    fetch(url)
-      .then((response) => response.json())
+
+  useEffect(() => {
+    dispatchStories({type: 'STORIES_FETCH_INIT'})
+
+    getAsyncStories()
       .then((result) => {
         dispatchStories({
           type: 'STORIES_FETCH_SUCCESS',
-          payload: result.hits
+          payload: result.data.stories
         });
       })
       .catch(() => dispatchStories({type: 'STORIES_FETCH_FAILURE'}));
-  }, [url]);
+  }, []);
 
-  useEffect(() => {
-    handleFetchStories();
-  }, [handleFetchStories]);
-
+  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(event?.target.value);
+  };
+  const searchedStories = stories.data.filter((story) =>
+    story.title.toLowerCase().includes(search.toLowerCase())
+  );
   const handleRemoveStory = (item: Story) => {
     dispatchStories({
       type: 'REMOVE_STORY',
       payload: item,
     });
   };
-
-  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearch(event?.target.value);
-  };
-
-  const handleSearchSubmit = () => {
-    setUrl(`${API_ENDPOINT}${search}`)
-  }
-
   return (
     <div>
       <h1>My Hacker Stories</h1>
@@ -145,20 +158,12 @@ const App = () => {
         <strong>Search:</strong>
       </InputWithLabel>
 
-      <button
-        type="button"
-        disabled={!search}
-        onClick={handleSearchSubmit}
-      >
-        Submit
-      </button>
-
       <hr />
       {stories.isError && <p>Something went wrong ...</p>}
       {stories.isLoading ? (
         <p>Loading ...</p>
       ) : (
-        <List list={stories.data} onRemoveItem={handleRemoveStory} />
+        <List list={searchedStories} onRemoveItem={handleRemoveStory} />
       )}
     </div>
   );
@@ -204,7 +209,7 @@ const InputWithLabel: React.FC<InputWithLabelProps> = ({
 };
 
 type ListProps = {
-  list: Story[];
+  list: Stories;
   onRemoveItem: (item: Story) => void;
 };
 
