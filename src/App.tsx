@@ -10,13 +10,13 @@ const App = () => {
     <div className="app">
       <nav>
         <Link to="/basic">Basic</Link>
-        <Link to="/localStore">LocalStore</Link>
-        <Link to="/fer/">Ref</Link>
+        <Link to="/local">localStorage</Link>
+        <Link to="/ref/">Ref</Link>
       </nav>
       <Routes>
-        <Route path="/Basic" element={<Basic />} />
-        <Route path="/Local" element={<Local />}/>
-        <Route path="/Rer" element={<Ref />}/>
+        <Route path="/basic" element={<Basic />} />
+        <Route path="/local" element={<Local />}/>
+        <Route path="/ref" element={<Ref />}/>
       </Routes>
     </div>
   );
